@@ -1,4 +1,6 @@
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-android'
 
 android {
     compileSdkVersion 29
@@ -22,7 +24,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-    packagingOptions{
+    packagingOptions {
         doNotStrip "*/*/libdjivideo.so"
         doNotStrip "*/*/libSDKRelativeJNI.so"
         doNotStrip "*/*/libFlyForbid.so"
@@ -72,5 +74,12 @@ dependencies {
 //    })
     compileOnly 'com.dji:dji-sdk-provided:4.11.1'
 
+    implementation "androidx.core:core-ktx:+"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.0.0-rc01"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
+
+}
+repositories {
+    mavenCentral()
 }

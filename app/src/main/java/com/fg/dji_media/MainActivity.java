@@ -10,6 +10,10 @@ import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -23,6 +27,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import dji.common.error.DJIError;
 import dji.common.error.DJISDKError;
+import dji.common.util.CommonCallbacks;
 import dji.sdk.base.BaseComponent;
 import dji.sdk.base.BaseProduct;
 import dji.sdk.sdkmanager.DJISDKInitEvent;
@@ -54,6 +59,10 @@ public class MainActivity extends AppCompatActivity {
     private AtomicBoolean isRegistrationInProgress = new AtomicBoolean(false);
     private static final int REQUEST_PERMISSION_CODE = 12345;
 
+
+    private TextView textView, textView2;
+    private ProgressBar progressBar;
+    private  Button button;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,7 +78,18 @@ public class MainActivity extends AppCompatActivity {
         mHandler = new Handler(Looper.getMainLooper());
 
 
+        textView = findViewById(R.id.textView2);
+        textView2 = findViewById(R.id.textView3);
+        progressBar = findViewById(R.id.progressBar2);
         /////////////////////////////
+        button = findViewById(R.id.button2);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, SerialNum.class);
+                startActivity(intent);
+            }
+        });
     }
 
     /**
@@ -132,7 +152,7 @@ public class MainActivity extends AppCompatActivity {
                                 showToast("Register Success");
                                 DJISDKManager.getInstance().startConnectionToProduct();
 
-                                DJISDKManager.getInstance().enableBridgeModeWithBridgeAppIP("192.168.0.163");
+                                DJISDKManager.getInstance().enableBridgeModeWithBridgeAppIP("192.168.192.64");
 
                             } else {
                                 showToast("Register sdk fails, please check the bundle id and network connection!");
@@ -152,6 +172,8 @@ public class MainActivity extends AppCompatActivity {
                             Log.d(TAG, String.format("onProductConnect newProduct:%s", baseProduct));
                             showToast("Product Connected");
                             notifyStatusChange();
+
+                            showButton();
 
                         }
                         @Override
@@ -186,7 +208,9 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
                 }
+
             });
+
         }
     }
 
@@ -215,4 +239,23 @@ public class MainActivity extends AppCompatActivity {
         });
 
     }
+
+    private void showButton() {
+
+        Handler handler = new Handler(Looper.getMainLooper());
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                textView.setText("Подключение Дрона: есть \n Подождите пока пропадет Toast сообщение снизу \n нажмите кнопку");
+
+                textView2.setVisibility(View.INVISIBLE);
+                progressBar.setVisibility(View.INVISIBLE);
+
+                button.setVisibility(View.VISIBLE);
+            }
+        });
+
+    }
+
+
 }
