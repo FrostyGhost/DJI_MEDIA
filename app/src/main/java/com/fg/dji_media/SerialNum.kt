@@ -20,7 +20,6 @@ import org.bouncycastle.asn1.x500.style.RFC4519Style.serialNumber
 
 class SerialNum : Activity() {
 
-//    lateinit var flightController:FlightController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,40 +29,10 @@ class SerialNum : Activity() {
 
 
        getKey()
-
     }
 
     fun getKey(){
-//        flightController.getSerialNumber(object : CommonCallbacks.CompletionCallbackWith<String> {
-//            override fun onSuccess(s: String) {
-//                textView.text = s
-//                Toast.makeText(this@SerialNum, "Success", Toast.LENGTH_LONG).show()
-//            }
-//
-//            override fun onFailure(djiError: DJIError) {
-//                textView.text = djiError.description.toString() + " ///// " + djiError.errorCode.toString()
-//                Toast.makeText(this@SerialNum, "DJIError", Toast.LENGTH_LONG).show()
-//            }
-//        })
-//
-//        flightController.getFirmwareVersion(object : CommonCallbacks.CompletionCallbackWith<String> {
-//            override fun onSuccess(p0: String?) {
-//                textView.append("\n   ${p0.toString()}")
-//                Toast.makeText(this@SerialNum, "Success", Toast.LENGTH_LONG).show()
-//            }
-//
-//            override fun onFailure(p0: DJIError?) {
-//                textView.append( " ///// " + p0.toString())
-//                Toast.makeText(this@SerialNum, "DJIError", Toast.LENGTH_LONG).show()
-//            }
-//
-//        })
-
-//        val aircraft = DJISDKManager.getInstance().product;
-
         val aircraft =DJISDKManager.getInstance().product as Aircraft
-//        val aircraft = DJISampleApplication.getProductInstance() as Aircraft
-//        if (null != aircraft.flightController) {
             val flightController = aircraft.flightController
             flightController.getSerialNumber(object : CommonCallbacks.CompletionCallbackWith<String> {
                 override fun onSuccess(s: String) {
@@ -76,7 +45,5 @@ class SerialNum : Activity() {
                 }
             })
         }
-
-//    }
 
 }

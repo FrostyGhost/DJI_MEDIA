@@ -63,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView textView, textView2;
     private ProgressBar progressBar;
     private  Button button;
+//    private  Button  mediaBtn;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,11 +83,22 @@ public class MainActivity extends AppCompatActivity {
         textView2 = findViewById(R.id.textView3);
         progressBar = findViewById(R.id.progressBar2);
         /////////////////////////////
+
+        Button mediaBtn = findViewById(R.id.mediaBtn);
+
         button = findViewById(R.id.button2);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, SerialNum.class);
+                startActivity(intent);
+            }
+        });
+
+        mediaBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, MainMediaActivity.class);
                 startActivity(intent);
             }
         });
@@ -252,6 +264,7 @@ public class MainActivity extends AppCompatActivity {
                 progressBar.setVisibility(View.INVISIBLE);
 
                 button.setVisibility(View.VISIBLE);
+//                mediaBtn.setVisibility(View.VISIBLE);
             }
         });
 
