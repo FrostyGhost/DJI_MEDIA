@@ -514,52 +514,6 @@ public class MediaJava extends AppCompatActivity implements View.OnClickListener
         }
     };
 
-//    private View.OnClickListener ImgOnClickListener = new View.OnClickListener() {
-//        @Override
-//        public void onClick(View v) {
-//            MediaFile selectedMedia = (MediaFile) v.getTag();
-//            if (selectedMedia != null && mMediaManager != null) {
-//                addMediaTask(selectedMedia);
-//            }
-//        }
-//    };
-
-//    private void addMediaTask(final MediaFile mediaFile) {
-//        final FetchMediaTaskScheduler scheduler = mMediaManager.getScheduler();
-//        final FetchMediaTask task =
-//                new FetchMediaTask(mediaFile, FetchMediaTaskContent.PREVIEW, new FetchMediaTask.Callback() {
-//                    @Override
-//                    public void onUpdate(final MediaFile mediaFile, FetchMediaTaskContent fetchMediaTaskContent, DJIError error) {
-//                        if (null == error) {
-//                            if (mediaFile.getPreview() != null) {
-//                                runOnUiThread(new Runnable() {
-//                                    @Override
-//                                    public void run() {
-//                                        final Bitmap previewBitmap = mediaFile.getPreview();
-//                                        mDisplayImageView.setVisibility(View.VISIBLE);
-//                                        mDisplayImageView.setImageBitmap(previewBitmap);
-//                                    }
-//                                });
-//                            } else {
-//                                setResultToToast("null bitmap!");
-//                            }
-//                        } else {
-//                            setResultToToast("fetch preview image failed: " + error.getDescription());
-//                        }
-//                    }
-//                });
-//
-//        scheduler.resume(new CommonCallbacks.CompletionCallback() {
-//            @Override
-//            public void onResult(DJIError error) {
-//                if (error == null) {
-//                    scheduler.moveTaskToNext(task);
-//                } else {
-//                    setResultToToast("resume scheduler failed: " + error.getDescription());
-//                }
-//            }
-//        });
-//    }
 
     //Listeners
     private MediaManager.FileListStateListener updateFileListStateListener = new MediaManager.FileListStateListener() {
@@ -689,10 +643,6 @@ public class MediaJava extends AppCompatActivity implements View.OnClickListener
             });
         }
     }
-
-
-
-
 
     @Override
     public void onClick(View v) {

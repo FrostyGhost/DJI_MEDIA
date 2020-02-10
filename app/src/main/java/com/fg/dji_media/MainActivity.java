@@ -183,6 +183,9 @@ public class MainActivity extends AppCompatActivity {
 
                                 DJISDKManager.getInstance().enableBridgeModeWithBridgeAppIP("192.168.192.64");
 
+//                                DJISDKManager.getInstance().enableBridgeModeWithBridgeAppIP("192.168.4.235");
+//                                DJISDKManager.getInstance().enableBridgeModeWithBridgeAppIP("83.239.29.198");
+
                             } else {
                                 showToast("Register sdk fails, please check the bundle id and network connection!");
                             }
