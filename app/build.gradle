@@ -78,6 +78,7 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.0.0-rc01"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
+    implementation 'com.dji:dji-uxsdk:4.11'
 
 }
 repositories {

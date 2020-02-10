@@ -63,7 +63,8 @@ public class MainActivity extends AppCompatActivity {
     private TextView textView, textView2;
     private ProgressBar progressBar;
     private  Button button;
-//    private  Button  mediaBtn;
+    private  Button button3;
+    private  Button  mediaBtn;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -84,8 +85,8 @@ public class MainActivity extends AppCompatActivity {
         progressBar = findViewById(R.id.progressBar2);
         /////////////////////////////
 
-        Button mediaBtn = findViewById(R.id.mediaBtn);
-
+         mediaBtn = findViewById(R.id.mediaBtn);
+        button3 = findViewById(R.id.button3);
         button = findViewById(R.id.button2);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -99,6 +100,22 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, MainMediaActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        mediaBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this,MediaJava.class);
+                startActivity(intent);
+            }
+        });
+
+        button3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, DJIMedia.class);
                 startActivity(intent);
             }
         });

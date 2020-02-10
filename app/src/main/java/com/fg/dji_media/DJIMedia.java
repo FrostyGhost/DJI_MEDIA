@@ -1,43 +1,25 @@
 package com.fg.dji_media;
 
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-
-import android.app.AlertDialog;
-import android.graphics.Bitmap;
-import android.os.Bundle;
-
 import android.Manifest;
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
-import android.os.AsyncTask;
-import android.os.Build;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
-import android.os.Looper;
-import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
+import android.widget.LinearLayout;
 import android.widget.SlidingDrawer;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.OrientationHelper;
 import androidx.recyclerview.widget.RecyclerView;
@@ -47,15 +29,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import dji.common.camera.SettingsDefinitions;
 import dji.common.error.DJICameraError;
 import dji.common.error.DJIError;
-import dji.common.error.DJISDKError;
+import dji.common.product.Model;
 import dji.common.util.CommonCallbacks;
 import dji.log.DJILog;
-import dji.sdk.base.BaseComponent;
 import dji.sdk.base.BaseProduct;
 import dji.sdk.camera.Camera;
 import dji.sdk.media.DownloadListener;
@@ -65,77 +45,45 @@ import dji.sdk.media.FetchMediaTaskScheduler;
 import dji.sdk.media.MediaFile;
 import dji.sdk.media.MediaManager;
 import dji.sdk.products.Aircraft;
-import dji.sdk.sdkmanager.DJISDKInitEvent;
 import dji.sdk.sdkmanager.DJISDKManager;
 
-import static com.fg.dji_media.MainMediaActivity.FLAG_CONNECTION_CHANGE;
+public class DJIMedia extends Activity implements View.OnClickListener {
 
-public class MediaJava extends AppCompatActivity implements View.OnClickListener {
-    private static final String TAG = MediaJava.class.getName();
-    private Button reloadButton, downloadButton, deleteButton;
+    private static final String TAG = DJIMedia.class.getName();
 
-    private static MediaJava activity;
-
-    private MediaJava.FileListAdapter mListAdapter;
     private Button mBackBtn, mDeleteBtn, mReloadBtn, mDownloadBtn, mStatusBtn;
     private Button mPlayBtn, mResumeBtn, mPauseBtn, mStopBtn, mMoveToBtn;
     private RecyclerView listView;
-    private SlidingDrawer mPushDrawerSd;
-    private ImageView mDisplayImageView;
-    private TextView mPushTv;
-
-
+    private FileListAdapter mListAdapter;
     private List<MediaFile> mediaFileList = new ArrayList<MediaFile>();
-
     private MediaManager mMediaManager;
     private MediaManager.FileListState currentFileListState = MediaManager.FileListState.UNKNOWN;
     private FetchMediaTaskScheduler scheduler;
     private ProgressDialog mLoadingDialog;
     private ProgressDialog mDownloadDialog;
-    private Handler mHandler;
-    private int lastProcess = -1;
-    private ProgressBar progressBar;
-    private File destDir;
-    private Handler mHander = new Handler();
-    private Thread t1;
-    private int currIndex;
-
-
+    private SlidingDrawer mPushDrawerSd;
+    File destDir = new File(Environment.getExternalStorageDirectory().getPath() + "/MediaManagerDemo/");
     private int currentProgress = -1;
-
-    private int lastClickViewIndex = -1;
+    private ImageView mDisplayImageView;
+    private int lastClickViewIndex =-1;
     private View lastClickView;
-    private static final String[] REQUIRED_PERMISSION_LIST = new String[]{
-            Manifest.permission.VIBRATE,
-            Manifest.permission.INTERNET,
-            Manifest.permission.ACCESS_WIFI_STATE,
-            Manifest.permission.WAKE_LOCK,
-            Manifest.permission.ACCESS_COARSE_LOCATION,
-            Manifest.permission.ACCESS_NETWORK_STATE,
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.CHANGE_WIFI_STATE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.BLUETOOTH,
-            Manifest.permission.BLUETOOTH_ADMIN,
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.READ_PHONE_STATE,
-    };
-    private List<String> missingPermission = new ArrayList<>();
-    private AtomicBoolean isRegistrationInProgress = new AtomicBoolean(false);
-    private static final int REQUEST_PERMISSION_CODE = 12345;
-    private SharedPreferences sPref;
-    private final AtomicBoolean running = new AtomicBoolean(false);
+    private TextView mPushTv;
 
+    //
     private static BaseProduct mProduct;
-
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_media_java);
+//        setContentView(R.layout.dji_media_fg);
+        setContentView(R.layout.gsfda);
+//        setContentView(R.layout.dji_media_new_fg);
 
         mProduct = DJISDKManager.getInstance().getProduct();
 
+        ActivityCompat.requestPermissions(DJIMedia.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+
         initUI();
+
     }
 
     @Override
@@ -162,7 +110,7 @@ public class MediaJava extends AppCompatActivity implements View.OnClickListener
             mMediaManager.removeFileListStateCallback(this.updateFileListStateListener);
             mMediaManager.removeMediaUpdatedVideoPlaybackStateListener(updatedVideoPlaybackStateListener);
             mMediaManager.exitMediaDownloading();
-            if (scheduler != null) {
+            if (scheduler!=null) {
                 scheduler.removeAllTasks();
             }
         }
@@ -179,7 +127,7 @@ public class MediaJava extends AppCompatActivity implements View.OnClickListener
         DemoApplication.getCameraInstance().setMode(SettingsDefinitions.CameraMode.SHOOT_PHOTO, new CommonCallbacks.CompletionCallback() {
             @Override
             public void onResult(DJIError mError) {
-                if (mError != null) {
+                if (mError != null){
                     setResultToToast("Set Shoot Photo Mode Failed" + mError.getDescription());
                 }
             }
@@ -195,23 +143,23 @@ public class MediaJava extends AppCompatActivity implements View.OnClickListener
 
         //Init RecyclerView
         listView = (RecyclerView) findViewById(R.id.filelistView);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(MediaJava.this, RecyclerView.VERTICAL, false);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(DJIMedia.this, RecyclerView.VERTICAL,false);
         listView.setLayoutManager(layoutManager);
 //        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
 //        listView.setLayoutManager(linearLayoutManager);
 
         //Init FileListAdapter
-        mListAdapter = new MediaJava.FileListAdapter();
+        mListAdapter = new FileListAdapter();
         listView.setAdapter(mListAdapter);
 
         //Init Loading Dialog
-        mLoadingDialog = new ProgressDialog(MediaJava.this);
+        mLoadingDialog = new ProgressDialog(DJIMedia.this);
         mLoadingDialog.setMessage("Please wait");
         mLoadingDialog.setCanceledOnTouchOutside(false);
         mLoadingDialog.setCancelable(false);
 
         //Init Download Dialog
-        mDownloadDialog = new ProgressDialog(MediaJava.this);
+        mDownloadDialog = new ProgressDialog(DJIMedia.this);
         mDownloadDialog.setTitle("Downloading file");
         mDownloadDialog.setIcon(android.R.drawable.ic_dialog_info);
         mDownloadDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
@@ -226,13 +174,32 @@ public class MediaJava extends AppCompatActivity implements View.OnClickListener
             }
         });
 
-        downloadButton = findViewById(R.id.downloadButton);
-        reloadButton = findViewById(R.id.reloadButton);
-        deleteButton = findViewById(R.id.deleteButton);
+        mPushDrawerSd = (SlidingDrawer)findViewById(R.id.pointing_drawer_sd);
+        mPushTv = (TextView)findViewById(R.id.pointing_push_tv);
+        mBackBtn = (Button) findViewById(R.id.back_btn);
+        mDeleteBtn = (Button) findViewById(R.id.delete_btn);
+        mDownloadBtn = (Button) findViewById(R.id.download_btn);
+        mReloadBtn = (Button) findViewById(R.id.reload_btn);
+        mStatusBtn = (Button) findViewById(R.id.status_btn);
+        mPlayBtn = (Button) findViewById(R.id.play_btn);
+        mResumeBtn = (Button) findViewById(R.id.resume_btn);
+        mPauseBtn = (Button) findViewById(R.id.pause_btn);
+        mStopBtn = (Button) findViewById(R.id.stop_btn);
+        mMoveToBtn = (Button) findViewById(R.id.moveTo_btn);
+        mDisplayImageView = (ImageView) findViewById(R.id.imageView);
+        mDisplayImageView.setVisibility(View.VISIBLE);
 
-        deleteButton.setOnClickListener(this);
-        reloadButton.setOnClickListener(this);
-        downloadButton.setOnClickListener(this);
+        mBackBtn.setOnClickListener(this);
+        mDeleteBtn.setOnClickListener(this);
+        mDownloadBtn.setOnClickListener(this);
+        mReloadBtn.setOnClickListener(this);
+        mDownloadBtn.setOnClickListener(this);
+        mStatusBtn.setOnClickListener(this);
+        mPlayBtn.setOnClickListener(this);
+        mResumeBtn.setOnClickListener(this);
+        mPauseBtn.setOnClickListener(this);
+        mStopBtn.setOnClickListener(this);
+        mMoveToBtn.setOnClickListener(this);
 
     }
 
@@ -282,7 +249,7 @@ public class MediaJava extends AppCompatActivity implements View.OnClickListener
     private void setResultToToast(final String result) {
         runOnUiThread(new Runnable() {
             public void run() {
-                Toast.makeText(MediaJava.this, result, Toast.LENGTH_SHORT).show();
+                Toast.makeText(DJIMedia.this, result, Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -291,13 +258,12 @@ public class MediaJava extends AppCompatActivity implements View.OnClickListener
         if (mPushTv == null) {
             setResultToToast("Push info tv has not be init...");
         }
-        Toast.makeText(this, string, Toast.LENGTH_LONG).show();
-//        MediaJava.this.runOnUiThread(new Runnable() {
-//            @Override
-//            public void run() {
-//                mPushTv.setText(string);
-//            }
-//        });
+        DJIMedia.this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mPushTv.setText(string);
+            }
+        });
     }
 
     private void initMediaManager() {
@@ -349,9 +315,9 @@ public class MediaJava extends AppCompatActivity implements View.OnClickListener
         mMediaManager = DemoApplication.getCameraInstance().getMediaManager();
         if (mMediaManager != null) {
 
-            if ((currentFileListState == MediaManager.FileListState.SYNCING) || (currentFileListState == MediaManager.FileListState.DELETING)) {
+            if ((currentFileListState == MediaManager.FileListState.SYNCING) || (currentFileListState == MediaManager.FileListState.DELETING)){
                 DJILog.e(TAG, "Media Manager is busy.");
-            } else {
+            }else{
 
                 mMediaManager.refreshFileListOfStorageLocation(SettingsDefinitions.StorageLocation.SDCARD, new CommonCallbacks.CompletionCallback() {
                     @Override
@@ -453,7 +419,7 @@ public class MediaJava extends AppCompatActivity implements View.OnClickListener
         }
     }
 
-    private class FileListAdapter extends RecyclerView.Adapter<MediaJava.ItemHolder> {
+    private class FileListAdapter extends RecyclerView.Adapter<ItemHolder> {
         @Override
         public int getItemCount() {
             if (mediaFileList != null) {
@@ -463,13 +429,13 @@ public class MediaJava extends AppCompatActivity implements View.OnClickListener
         }
 
         @Override
-        public MediaJava.ItemHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        public ItemHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.media_info_item, parent, false);
-            return new MediaJava.ItemHolder(view);
+            return new ItemHolder(view);
         }
 
         @Override
-        public void onBindViewHolder(MediaJava.ItemHolder mItemHolder, final int index) {
+        public void onBindViewHolder(ItemHolder mItemHolder, final int index) {
 
             final MediaFile mediaFile = mediaFileList.get(index);
             if (mediaFile != null) {
@@ -483,9 +449,7 @@ public class MediaJava extends AppCompatActivity implements View.OnClickListener
                 mItemHolder.file_type.setText(mediaFile.getMediaType().name());
                 mItemHolder.file_size.setText(mediaFile.getFileSize() + " Bytes");
                 mItemHolder.thumbnail_img.setImageBitmap(mediaFile.getThumbnail());
-
-                ///////////////////////////////////////////////////////////////////
-//                mItemHolder.thumbnail_img.setOnClickListener(ImgOnClickListener);
+                mItemHolder.thumbnail_img.setOnClickListener(ImgOnClickListener);
                 mItemHolder.thumbnail_img.setTag(mediaFile);
                 mItemHolder.itemView.setTag(index);
 
@@ -505,7 +469,6 @@ public class MediaJava extends AppCompatActivity implements View.OnClickListener
         public void onClick(View v) {
             lastClickViewIndex = (int) (v.getTag());
 
-
             if (lastClickView != null && lastClickView != v) {
                 lastClickView.setSelected(false);
             }
@@ -514,52 +477,52 @@ public class MediaJava extends AppCompatActivity implements View.OnClickListener
         }
     };
 
-//    private View.OnClickListener ImgOnClickListener = new View.OnClickListener() {
-//        @Override
-//        public void onClick(View v) {
-//            MediaFile selectedMedia = (MediaFile) v.getTag();
-//            if (selectedMedia != null && mMediaManager != null) {
-//                addMediaTask(selectedMedia);
-//            }
-//        }
-//    };
+    private View.OnClickListener ImgOnClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            MediaFile selectedMedia = (MediaFile) v.getTag();
+            if (selectedMedia != null && mMediaManager != null) {
+                addMediaTask(selectedMedia);
+            }
+        }
+    };
 
-//    private void addMediaTask(final MediaFile mediaFile) {
-//        final FetchMediaTaskScheduler scheduler = mMediaManager.getScheduler();
-//        final FetchMediaTask task =
-//                new FetchMediaTask(mediaFile, FetchMediaTaskContent.PREVIEW, new FetchMediaTask.Callback() {
-//                    @Override
-//                    public void onUpdate(final MediaFile mediaFile, FetchMediaTaskContent fetchMediaTaskContent, DJIError error) {
-//                        if (null == error) {
-//                            if (mediaFile.getPreview() != null) {
-//                                runOnUiThread(new Runnable() {
-//                                    @Override
-//                                    public void run() {
-//                                        final Bitmap previewBitmap = mediaFile.getPreview();
-//                                        mDisplayImageView.setVisibility(View.VISIBLE);
-//                                        mDisplayImageView.setImageBitmap(previewBitmap);
-//                                    }
-//                                });
-//                            } else {
-//                                setResultToToast("null bitmap!");
-//                            }
-//                        } else {
-//                            setResultToToast("fetch preview image failed: " + error.getDescription());
-//                        }
-//                    }
-//                });
-//
-//        scheduler.resume(new CommonCallbacks.CompletionCallback() {
-//            @Override
-//            public void onResult(DJIError error) {
-//                if (error == null) {
-//                    scheduler.moveTaskToNext(task);
-//                } else {
-//                    setResultToToast("resume scheduler failed: " + error.getDescription());
-//                }
-//            }
-//        });
-//    }
+    private void addMediaTask(final MediaFile mediaFile) {
+        final FetchMediaTaskScheduler scheduler = mMediaManager.getScheduler();
+        final FetchMediaTask task =
+                new FetchMediaTask(mediaFile, FetchMediaTaskContent.PREVIEW, new FetchMediaTask.Callback() {
+                    @Override
+                    public void onUpdate(final MediaFile mediaFile, FetchMediaTaskContent fetchMediaTaskContent, DJIError error) {
+                        if (null == error) {
+                            if (mediaFile.getPreview() != null) {
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        final Bitmap previewBitmap = mediaFile.getPreview();
+                                        mDisplayImageView.setVisibility(View.VISIBLE);
+                                        mDisplayImageView.setImageBitmap(previewBitmap);
+                                    }
+                                });
+                            } else {
+                                setResultToToast("null bitmap!");
+                            }
+                        } else {
+                            setResultToToast("fetch preview image failed: " + error.getDescription());
+                        }
+                    }
+                });
+
+        scheduler.resume(new CommonCallbacks.CompletionCallback() {
+            @Override
+            public void onResult(DJIError error) {
+                if (error == null) {
+                    scheduler.moveTaskToNext(task);
+                } else {
+                    setResultToToast("resume scheduler failed: " + error.getDescription());
+                }
+            }
+        });
+    }
 
     //Listeners
     private MediaManager.FileListStateListener updateFileListStateListener = new MediaManager.FileListStateListener() {
@@ -612,50 +575,50 @@ public class MediaJava extends AppCompatActivity implements View.OnClickListener
                 append("\n");
     }
 
-    private void downloadFileByIndex(final int index) {
+    private void downloadFileByIndex(final int index){
 
         try {
-        if ((mediaFileList.get(index).getMediaType() == MediaFile.MediaType.PANORAMA)
-                || (mediaFileList.get(index).getMediaType() == MediaFile.MediaType.SHALLOW_FOCUS)) {
-            return;
-        }
+//        if ((mediaFileList.get(index).getMediaType() == MediaFile.MediaType.PANORAMA)
+//                || (mediaFileList.get(index).getMediaType() == MediaFile.MediaType.SHALLOW_FOCUS)) {
+//            return;
+//        }
 
-            mediaFileList.get(index).fetchFileData(destDir, null, new DownloadListener<String>() {
-                @Override
-                public void onFailure(DJIError error) {
-                    HideDownloadProgressDialog();
-                    setResultToToast("Download File Failed" + error.getDescription());
-                    currentProgress = -1;
+        mediaFileList.get(index).fetchFileData(destDir, null, new DownloadListener<String>() {
+            @Override
+            public void onFailure(DJIError error) {
+                HideDownloadProgressDialog();
+                setResultToToast("Download File Failed" + error.getDescription());
+                currentProgress = -1;
+            }
+
+            @Override
+            public void onProgress(long total, long current) {
+            }
+
+            @Override
+            public void onRateUpdate(long total, long current, long persize) {
+                int tmpProgress = (int) (1.0 * current / total * 100);
+                if (tmpProgress != currentProgress) {
+                    mDownloadDialog.setProgress(tmpProgress);
+                    currentProgress = tmpProgress;
                 }
+            }
 
-                @Override
-                public void onProgress(long total, long current) {
-                }
+            @Override
+            public void onStart() {
+                currentProgress = -1;
+                ShowDownloadProgressDialog();
+            }
 
-                @Override
-                public void onRateUpdate(long total, long current, long persize) {
-                    int tmpProgress = (int) (1.0 * current / total * 100);
-                    if (tmpProgress != currentProgress) {
-                        mDownloadDialog.setProgress(tmpProgress);
-                        currentProgress = tmpProgress;
-                    }
-                }
+            @Override
+            public void onSuccess(String filePath) {
+                HideDownloadProgressDialog();
+                setResultToToast("Download File Success" + ":" + filePath);
+                currentProgress = -1;
+            }
+        });
 
-                @Override
-                public void onStart() {
-                    currentProgress = -1;
-                    ShowDownloadProgressDialog();
-                }
-
-                @Override
-                public void onSuccess(String filePath) {
-                    HideDownloadProgressDialog();
-                    setResultToToast("Download File Success" + ":" + filePath);
-                    currentProgress = -1;
-                }
-            });
-
-        } catch (Exception e) {
+        }catch (Exception e){
             DJILog.e(TAG, e);
         }
     }
@@ -690,39 +653,153 @@ public class MediaJava extends AppCompatActivity implements View.OnClickListener
         }
     }
 
+    private void playVideo() {
+        try {
+            mDisplayImageView.setVisibility(View.INVISIBLE);
+            MediaFile selectedMediaFile = mediaFileList.get(lastClickViewIndex);
+            if ((selectedMediaFile.getMediaType() == MediaFile.MediaType.MOV) || (selectedMediaFile.getMediaType() == MediaFile.MediaType.MP4)) {
+                mMediaManager.playVideoMediaFile(selectedMediaFile, new CommonCallbacks.CompletionCallback() {
+                    @Override
+                    public void onResult(DJIError error) {
+                        if (null != error) {
+                            setResultToToast("Play Video Failed " + error.getDescription());
+                        } else {
+                            DJILog.e(TAG, "Play Video Success");
+                        }
+                    }
+                });
+            }
+        }catch (Exception e){
+            DJILog.e(TAG, e);
+        }
+//        mDisplayImageView.setVisibility(View.INVISIBLE);
+//        MediaFile selectedMediaFile = mediaFileList.get(lastClickViewIndex);
+//        if ((selectedMediaFile.getMediaType() == MediaFile.MediaType.MOV) || (selectedMediaFile.getMediaType() == MediaFile.MediaType.MP4)) {
+//            mMediaManager.playVideoMediaFile(selectedMediaFile, new CommonCallbacks.CompletionCallback() {
+//                @Override
+//                public void onResult(DJIError error) {
+//                    if (null != error) {
+//                        setResultToToast("Play Video Failed " + error.getDescription());
+//                    } else {
+//                        DJILog.e(TAG, "Play Video Success");
+//                    }
+//                }
+//            });
+//        }
+    }
 
+    private void moveToPosition(){
 
+        LayoutInflater li = LayoutInflater.from(this);
+        View promptsView = li.inflate(R.layout.prompt_input_position, null);
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        alertDialogBuilder.setView(promptsView);
+        final EditText userInput = (EditText) promptsView.findViewById(R.id.editTextDialogUserInput);
+        alertDialogBuilder.setCancelable(false).setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                String ms = userInput.getText().toString();
+                mMediaManager.moveToPosition(Integer.parseInt(ms),
+                        new CommonCallbacks.CompletionCallback() {
+                            @Override
+                            public void onResult(DJIError error) {
+                                if (null != error) {
+                                    setResultToToast("Move to video position failed" + error.getDescription());
+                                } else {
+                                    DJILog.e(TAG, "Move to video position successfully.");
+                                }
+                            }
+                        });
+            }
+        })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
+        AlertDialog alertDialog = alertDialogBuilder.create();
+        alertDialog.show();
 
+    }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.downloadButton: {
-                try {
-
-                    Toast.makeText(this, lastClickViewIndex, Toast.LENGTH_SHORT).show();
-                }catch (Exception e) {
-                    DJILog.e(TAG, e);
-                }
-                downloadFileByIndex(lastClickViewIndex);
+            case R.id.back_btn: {
+                this.finish();
                 break;
             }
-            case R.id.deleteButton: {
+            case R.id.delete_btn:{
                 deleteFileByIndex(lastClickViewIndex);
                 break;
             }
-            case R.id.reloadButton: {
+            case R.id.reload_btn: {
                 getFileList();
                 break;
             }
+            case R.id.download_btn: {
 
-            case R.id.back_btn: {
-                this.finish();
+                DJILog.e("QQQ", lastClickViewIndex);
+                downloadFileByIndex(lastClickViewIndex);
+                break;
+            }
+            case R.id.status_btn: {
+                if (mPushDrawerSd.isOpened()) {
+                    mPushDrawerSd.animateClose();
+                } else {
+                    mPushDrawerSd.animateOpen();
+                }
+                break;
+            }
+            case R.id.play_btn: {
+                playVideo();
+                break;
+            }
+            case R.id.resume_btn: {
+                mMediaManager.resume(new CommonCallbacks.CompletionCallback() {
+                    @Override
+                    public void onResult(DJIError error) {
+                        if (null != error) {
+                            setResultToToast("Resume Video Failed" + error.getDescription());
+                        } else {
+                            DJILog.e(TAG, "Resume Video Success");
+                        }
+                    }
+                });
+                break;
+            }
+            case R.id.pause_btn: {
+                mMediaManager.pause(new CommonCallbacks.CompletionCallback() {
+                    @Override
+                    public void onResult(DJIError error) {
+                        if (null != error) {
+                            setResultToToast("Pause Video Failed" + error.getDescription());
+                        } else {
+                            DJILog.e(TAG, "Pause Video Success");
+                        }
+                    }
+                });
+                break;
+            }
+            case R.id.stop_btn: {
+                mMediaManager.stop(new CommonCallbacks.CompletionCallback() {
+                    @Override
+                    public void onResult(DJIError error) {
+                        if (null != error) {
+                            setResultToToast("Stop Video Failed" + error.getDescription());
+                        } else {
+                            DJILog.e(TAG, "Stop Video Success");
+                        }
+                    }
+                });
+                break;
+            }
+            case R.id.moveTo_btn: {
+                moveToPosition();
                 break;
             }
             default:
                 break;
         }
     }
-}
 
+}

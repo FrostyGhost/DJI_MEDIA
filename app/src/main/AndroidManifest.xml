@@ -74,6 +74,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".SerialNum" />
+        <activity android:name=".DJIMedia"/>
     </application>
 
 </manifest>
